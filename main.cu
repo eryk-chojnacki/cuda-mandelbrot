@@ -1,10 +1,12 @@
 // Note: Most of the code comes from the MacResearch OpenCL podcast
 
+#include <iostream>
 #include <stdio.h>
 #include <assert.h>
 #include <stdlib.h>
 
 #include <cuda.h>
+#include "timer.hpp"
 
 extern "C" {
   #include "bmp.h"
@@ -42,6 +44,7 @@ __global__ void render(char *out, int width, int height) {
 
 void runCUDA(int width, int height)
 {
+  Timer malloc_time;
 	// Multiply by 3 here, since we need red, green and blue for each pixel
   size_t buffer_size = sizeof(char) * width * height * 3;
 
@@ -49,21 +52,32 @@ void runCUDA(int width, int height)
   cudaMalloc((void **) &image, buffer_size);
 
   char *host_image = (char *) malloc(buffer_size);
+  malloc_time.stop();
+  Timer kernel_time;
 
   dim3 blockDim(16, 16, 1);
   dim3 gridDim(width / blockDim.x, height / blockDim.y, 1);
   render<<< gridDim, blockDim, 0 >>>(image, width, height);
+  cudaDeviceSynchronize();
+  kernel_time.stop();
+  Timer copy_from_device;
 
   cudaMemcpy(host_image, image, buffer_size, cudaMemcpyDeviceToHost);
+  copy_from_device.stop();
+
+  const double malloc_us = malloc_time.microseconds();
+  const double kernel_time_us = kernel_time.microseconds();
+  const double copy_from_device_us = copy_from_device.microseconds();
+  std::cout << "malloc: " << malloc_us << " kernel: " << kernel_time_us << " copy: " << copy_from_device_us << std::endl;
 
   // Now write the file
   write_bmp("output.bmp", width, height, host_image);
 
-	cudaFree(image);
+  cudaFree(image);
   free(host_image);
 }
 
 int main(int argc, const char * argv[]) {
-  runCUDA(1024, 1024);
+  runCUDA(5*1024, 5*1024);
   return 0;
 }
