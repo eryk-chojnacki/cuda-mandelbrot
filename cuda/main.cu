@@ -6,10 +6,10 @@
 #include <stdlib.h>
 
 #include <cuda.h>
-#include "timer.hpp"
+#include "../shared/timer.hpp"
 
 extern "C" {
-  #include "bmp.h"
+  #include "../shared/bmp.h"
 }
 
 __global__ void render(char *out, int width, int height) {
