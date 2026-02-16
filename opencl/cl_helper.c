@@ -104,7 +104,7 @@ void print_debug_info(cl_context context) {
   }
 }
 
-void check_succeeded(char* message, cl_int err) {
+void check_succeeded(const char* message, cl_int err) {
   if(err != CL_SUCCESS) {
     // Abort and print debugging info
     printf("%s (%d): ", message, err);

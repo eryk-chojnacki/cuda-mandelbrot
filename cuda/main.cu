@@ -58,7 +58,7 @@ void runCUDA(int width, int height)
   dim3 blockDim(16, 16, 1);
   dim3 gridDim(width / blockDim.x, height / blockDim.y, 1);
   render<<< gridDim, blockDim, 0 >>>(image, width, height);
-  cudaDeviceSynchronize();
+  //cudaDeviceSynchronize();
   kernel_time.stop();
   Timer copy_from_device;
 
@@ -68,7 +68,7 @@ void runCUDA(int width, int height)
   const double malloc_us = malloc_time.microseconds();
   const double kernel_time_us = kernel_time.microseconds();
   const double copy_from_device_us = copy_from_device.microseconds();
-  std::cout << "malloc: " << malloc_us << " kernel: " << kernel_time_us << " copy: " << copy_from_device_us << std::endl;
+  std::cout << "malloc: " << malloc_us << " kernel + copy: " << kernel_time_us + copy_from_device_us << std::endl;
 
   // Now write the file
   write_bmp("output.bmp", width, height, host_image);
@@ -78,6 +78,7 @@ void runCUDA(int width, int height)
 }
 
 int main(int argc, const char * argv[]) {
-  runCUDA(5*1024, 5*1024);
+  auto size = 25000;
+  runCUDA(size, size);
   return 0;
 }
