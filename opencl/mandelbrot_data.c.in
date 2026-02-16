@@ -1,0 +1,3 @@
+const char *opencl_program = R"(
+@FILE_CONTENT@
+)";
